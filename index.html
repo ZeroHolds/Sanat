@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SupportMe Platform | Sanat</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    /* Base & Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    :root {
+      --primary-color: #7c3aed;
+      --primary-dark: #5b21b6;
+      --secondary-color: #f1f5f9;
+      --accent-color: #f59e0b;
+      --success-color: #10b981;
+      --danger-color: #ef4444;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    /* Typography */
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 2.5rem;
+      text-align: center;
+      letter-spacing: -0.025em;
+    }
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+      position: relative;
+      padding-bottom: 0.75rem;
+      text-align: center;
+    }
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      border-radius: var(--radius-sm);
+    }
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+    /* Layout */
+    .section {
+      background: white;
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .section:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    .section-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    @media (max-width: 768px) {
+      .section-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    input, select {
+      padding: 0.875rem 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: white;
+      color: var(--text-primary);
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+    input::placeholder {
+      color: #94a3b8;
+    }
+    /* Buttons */
+    .btn {
+      padding: 0.875rem 1.75rem;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      color: white;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, var(--primary-dark), #4c1d95);
+    }
+    .btn-secondary {
+      background: white;
+      color: var(--text-primary);
+      border: 2px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+      border-color: var(--primary-color);
+      background: var(--secondary-color);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, var(--success-color), #059669);
+      color: white;
+    }
+    .button-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    /* Cards */
+    .user-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-md);
+      max-width: 400px;
+      margin: 0 auto;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    .user-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    .card-content {
+      padding: 1.5rem;
+    }
+    /* QR Code Styling */
+    #qrcode {
+      margin: 1.5rem auto;
+      padding: 1rem;
+      background: white;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      max-width: 200px;
+    }
+    #qrcode canvas {
+      width: 100% !important;
+      height: auto !important;
+      border-radius: var(--radius-sm);
+    }
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 1.5rem 0;
+      background: white;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    th {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      color: white;
+      font-weight: 600;
+      padding: 1rem;
+      text-align: left;
+    }
+    td {
+      padding: 0.875rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover {
+      background-color: var(--secondary-color);
+    }
+    /* Status Messages */
+    .status-message {
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      margin: 1rem 0;
+      text-align: center;
+      font-weight: 500;
+    }
+    .status-success {
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .status-error {
+      background-color: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+    /* Dividers */
+    hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+      margin: 2.5rem 0;
+    }
+    /* Dashboard Specific */
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    /* Responsive Adjustments */
+    @media (max-width: 640px) {
+      body {
+        padding: 15px;
+      }
+      .section {
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+      }
+      .button-group {
+        flex-direction: column;
+      }
+      .btn {
+        width: 100%;
+      }
+      input, select {
+        width: 100%;
+      }
+      .dashboard-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .section {
+      animation: fadeIn 0.3s ease-out;
+    }
+    /* Loading States */
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: var(--radius-md);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-dark);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Sanat Support Platform</h1>
+    <div class="section-container">
+      <!-- Section 1: Signup -->
+      <div class="section">
+        <h2>Creator Signup</h2>
+        <div class="input-group">
+          <input type="email" id="email" placeholder="Email Address" aria-label="Email">
+          <input type="password" id="password" placeholder="Password" aria-label="Password">
+          <input type="text" id="username" placeholder="Username (unique ID)" aria-label="Username">
+          <input type="text" id="payment" placeholder="JazzCash/Easypaisa Number or QR link" aria-label="Payment Method">
+        </div>
+        <div class="button-group">
+          <button class="btn btn-primary" onclick="signup()">Create Account</button>
+        </div>
+      </div>
+      <!-- Section 2: Visit Creator -->
+      <div class="section">
+        <h2>Visit Creator Page</h2>
+        <div class="form-group">
+          <input type="text" id="visitUsername" placeholder="Enter creator username" aria-label="Creator Username">
+        </div>
+        <div class="button-group">
+          <button class="btn btn-secondary" onclick="showCreator()">Visit Creator</button>
+        </div>
+        <div id="creator-container"></div>
+      </div>
+    </div>
+    <!-- Section 3: Record Payment (Admin / Manual) -->
+    <div class="section">
+      <h2>Record Payment (Admin / Manual)</h2>
+      <div class="input-group">
+        <input type="text" id="payUsername" placeholder="Creator username" aria-label="Creator Username">
+        <input type="text" id="supporter" placeholder="Supporter Name" aria-label="Supporter Name">
+        <input type="number" id="amount" placeholder="Amount (PKR)" aria-label="Amount">
+        <input type="number" id="fee" placeholder="Your Fee (optional)" aria-label="Fee">
+      </div>
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="recordPayment()">Record Payment</button>
+      </div>
+      <div id="payment-status"></div>
+    </div>
+    <!-- Section 4: Creator Dashboard -->
+    <div class="section">
+      <h2>Creator Dashboard</h2>
+      <div class="form-group">
+        <input type="text" id="dashboardUsername" placeholder="Enter your username" aria-label="Your Username">
+      </div>
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="showDashboard()">Show Dashboard</button>
+      </div>
+      <div id="dashboard-container"></div>
+    </div>
+  </div>
+  <script>
+    // (All JavaScript code remains exactly the same as provided)
+    const supabaseUrl = 'https://kmggqmzmddqzgwobjxvz.supabase.co';
+    const supabaseKey = 'sb_publishable_3OTJPdaA3kiTNadvVnw2fg_DmPwGI_Q';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const PLATFORM_FEE_PERCENT = 5; // 5% platform fee
+    // -------- Signup Function --------
+    async function signup() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const username = document.getElementById('username').value;
+      const payment = document.getElementById('payment').value;
+      if (!email || !password || !username || !payment) {
+        alert("Please fill all fields!");
+        return;
+      }
+      const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+      if (authError) { alert("Signup error: " + authError.message); return; }
+      const { error } = await supabase.from('users').insert([{ username, email, payment_method: payment }]);
+      if (error) { alert("Database error: " + error.message); return; }
+      alert("Signup successful! Check your email for confirmation.");
+      document.getElementById('email').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('username').value = '';
+      document.getElementById('payment').value = '';
+    }
+    // -------- Show Creator Page with QR + Payment --------
+    async function showCreator() {
+      const username = document.getElementById('visitUsername').value;
+      if (!username) { alert("Enter username!"); return; }
+      const { data: users, error } = await supabase.from('users').select('*').eq('username', username).limit(1);
+      if (error || users.length === 0) {
+        document.getElementById('creator-container').innerHTML = "<p class='status-message status-error'>Creator not found.</p>";
+        return;
+      }
+      const user = users[0];
+      const container = document.getElementById('creator-container');
+      container.innerHTML = `
+        <div class="user-card">
+          <div class="card-content">
+            <h3>${user.username}</h3>
+            <p>Support me via:</p>
+            <p><strong>${user.payment_method}</strong></p>
+            <div id="qrcode"></div>
+            <div class="form-group">
+              <input type="number" id="supportAmount" placeholder="Enter amount to support (PKR)" aria-label="Support Amount">
+            </div>
+            <p class="text-sm">Platform fee will be automatically calculated (${PLATFORM_FEE_PERCENT}%)</p>
+            <div class="button-group">
+              <button class="btn btn-success" onclick="recordVisitorPayment('${user.id}', '${user.username}', '${user.payment_method}')">Support & Record</button>
+            </div>
+            <div id="visitor-status"></div>
+          </div>
+        </div>
+      `;
+      const qrDiv = document.getElementById('qrcode');
+      if(user.payment_method){
+        QRCode.toCanvas(qrDiv, user.payment_method, function (error) {
+          if (error) console.error(error);
+        });
+      }
+    }
+    // -------- Record Visitor Payment --------
+    async function recordVisitorPayment(user_id, username, payment_method) {
+      const amountInput = document.getElementById('supportAmount').value;
+      const amount = parseFloat(amountInput);
+      if (!amount || amount <= 0) { alert("Enter valid amount!"); return; }
+      const fee = parseFloat((amount * PLATFORM_FEE_PERCENT / 100).toFixed(2));
+      const supporter_name = prompt("Enter your name (optional)");
+      const { error } = await supabase.from('payments').insert([{
+        user_id,
+        supporter_name: supporter_name || "Anonymous",
+        amount,
+        fee
+      }]);
+      if (error) {
+        document.getElementById('visitor-status').innerHTML = `<p class="status-message status-error">Error recording payment: ${error.message}</p>`;
+        return;
+      }
+      document.getElementById('visitor-status').innerHTML = `<p class="status-message status-success">Payment recorded! Amount: ${amount} PKR | Fee: ${fee} PKR</p>`;
+      document.getElementById('supportAmount').value = '';
+      alert(`Please send ${amount} PKR to ${payment_method} directly. Platform fee: ${fee} PKR.`);
+    }
+    // -------- Record Payment (Admin / Manual) --------
+    async function recordPayment() {
+      const username = document.getElementById('payUsername').value;
+      const supporter = document.getElementById('supporter').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const fee = parseFloat(document.getElementById('fee').value) || 0;
+      if (!username || !supporter || !amount) { alert("Fill all fields!"); return; }
+      const { data: users } = await supabase.from('users').select('id').eq('username', username).limit(1);
+      if (!users || users.length === 0) { alert("Creator not found"); return; }
+      const user_id = users[0].id;
+      const { error } = await supabase.from('payments').insert([{ user_id, supporter_name: supporter, amount, fee }]);
+      if (error) { 
+        document.getElementById('payment-status').innerHTML = `<p class="status-message status-error">Error recording payment: ${error.message}</p>`;
+        return; 
+      }
+      document.getElementById('payment-status').innerHTML = `<p class="status-message status-success">Payment recorded successfully!</p>`;
+      document.getElementById('payUsername').value = '';
+      document.getElementById('supporter').value = '';
+      document.getElementById('amount').value = '';
+      document.getElementById('fee').value = '';
+    }
+    // -------- Creator Dashboard --------
+    async function showDashboard() {
+      const username = document.getElementById('dashboardUsername').value;
+      if (!username) { alert("Enter your username!"); return; }
+      const { data: users, error: userError } = await supabase.from('users').select('*').eq('username', username).limit(1);
+      if (userError || !users || users.length === 0) {
+        document.getElementById('dashboard-container').innerHTML = "<p class='status-message status-error'>User not found.</p>";
+        return;
+      }
+      const user_id = users[0].id;
+      const { data: payments, error: paymentsError } = await supabase.from('payments').select('*').eq('user_id', user_id);
+      if (paymentsError) { 
+        document.getElementById('dashboard-container').innerHTML = "<p class='status-message status-error'>Error loading payments</p>"; 
+        return; 
+      }
+      let totalAmount = 0, totalFee = 0;
+      let rows = '';
+      payments.forEach(p => {
+        rows += `<tr>
+                  <td>${p.supporter_name}</td>
+                  <td>${p.amount} PKR</td>
+                  <td>${p.fee} PKR</td>
+                  <td>${new Date(p.created_at).toLocaleString()}</td>
+                 </tr>`;
+        totalAmount += parseFloat(p.amount);
+        totalFee += parseFloat(p.fee);
+      });
+      document.getElementById('dashboard-container').innerHTML = `
+        <div class="dashboard-stats">
+          <div class="stat-card">
+            <div class="stat-value">${totalAmount}</div>
+            <div class="stat-label">Total Received (PKR)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${totalFee}</div>
+            <div class="stat-label">Platform Fees (PKR)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${payments.length}</div>
+            <div class="stat-label">Total Supporters</div>
+          </div>
+        </div>
+        <h3>Payment History</h3>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Supporter</th>
+                <th>Amount</th>
+                <th>Fee</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
